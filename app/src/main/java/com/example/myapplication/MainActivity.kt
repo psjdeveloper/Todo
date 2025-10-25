@@ -26,9 +26,9 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(paddingValues)
                     ) {
-                        TodoUi()
+
                         Spacer(Modifier.padding(20.dp))
-                        InputWithTodo()
+                        TodoUiWithEditDelete()
                     }
                 }
             }

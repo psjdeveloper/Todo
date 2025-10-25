@@ -52,26 +52,54 @@ fun TodoUi(modifier: Modifier = Modifier) {
             }
 
             // 👇 Add input field below
-            InputWithTodo()
+            TodoUiWithEditDelete()
         }
     }
 }
 
 @Composable
-fun InputWithTodo() {
+fun TodoUiWithEditDelete() {
+    var todos = remember { mutableStateListOf<String>() }
     var text by remember { mutableStateOf("") }
-    val todoList = remember { mutableStateListOf<String>() }
+    var editIndex by remember { mutableStateOf<Int?>(null) } // track which todo is being edited
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(Color.Black, Color(0xFF0000FF)))
+            )
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Input + Button card
+        // Welcome Card
         Card(
             modifier = Modifier
-                .padding(16.dp)
                 .fillMaxWidth()
-                .height(150.dp), // taller to fit input + button
+                .height(100.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF001F3F)),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    "Welcome to Todo App",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Input + Add/Update Button
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF001F3F)),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
@@ -79,8 +107,8 @@ fun InputWithTodo() {
                 TextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text("Enter your task here properly") },
-                    placeholder = { Text("Enter something...") },
+                    label = { Text("Enter your task") },
+                    placeholder = { Text("Type something...") },
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
@@ -103,8 +131,13 @@ fun InputWithTodo() {
                 Button(
                     onClick = {
                         if (text.isNotBlank()) {
-                            todoList.add(text.trim())
-                            text = "" // clear input after adding
+                            if (editIndex != null) {
+                                todos[editIndex!!] = text.trim() // update task
+                                editIndex = null
+                            } else {
+                                todos.add(text.trim()) // add new task
+                            }
+                            text = ""
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -113,29 +146,52 @@ fun InputWithTodo() {
                     ),
                     modifier = Modifier
                         .align(Alignment.End)
-                        .width(100.dp)
+                        .width(120.dp)
                         .height(50.dp)
                 ) {
-                    Text("Add")
+                    Text(if (editIndex != null) "Update" else "Add")
                 }
             }
         }
 
-        // Display the list of todos
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Todo List
         Column(modifier = Modifier.fillMaxWidth()) {
-            todoList.forEach { task ->
+            todos.forEachIndexed { index, task ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A2E)),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Text(
-                        text = task,
-                        color = Color.White,
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = task, color = Color.White)
+
+                        Row {
+                            // Edit Button
+                            TextButton(onClick = {
+                                text = task
+                                editIndex = index
+                            }) {
+                                Text("Edit", color = Color.Cyan)
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Delete Button
+                            TextButton(onClick = { todos.removeAt(index) }) {
+                                Text("Delete", color = Color.Red)
+                            }
+                        }
+                    }
                 }
             }
         }
